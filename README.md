@@ -53,8 +53,11 @@ seconds after guest boot and `panic_on_warn=1` escalated it to a kernel
 panic (full console: `logs/external-verification/
 external-verification-serial.log`).
 
-`reproducer/repro.prog` is the minimal triggering testcase extracted by
-the pipeline; it depends on the state above and does not reproduce alone.
+`reproducer/repro.prog` is a syzkaller-extracted program that does **not**
+contain any XFS/mkdir calls and does not reproduce this warning — it is
+included only as original pipeline evidence. The actual trigger is the
+`mkdirat()` call within the state-primed recipe replay (see the call
+trace: `xfs_vn_mkdir` -> `xfs_create` -> `xfs_bumplink` -> `inc_nlink`).
 
 A C reproducer has not been included yet: syzkaller's reproducer pipeline
 is still generating and verifying one; it will be added once it passes.
@@ -72,12 +75,13 @@ is still generating and verifying one; it will be added once it passes.
 
 ## Notes for maintainers
 
-- What is confirmed: `mkdir()` on a crafted XFS image ends in
-  `xfs_bumplink()` -> `inc_nlink()` on an inode with `i_nlink == 0` that
-  does not have I_LINKABLE set, tripping the WARN_ON at fs/inode.c:465.
-- Natural next step: inspect the XFS directory-create path
-  (`xfs_dir_create_child()` -> `xfs_bumplink()`) for how a zero-link inode
-  can be used as the parent there; the crafted image contents are in the
-  reproducer.
+- What is confirmed: the warning indicates that `inc_nlink()` was called
+  with `inode->i_nlink == 0` while `I_LINKABLE` was not set (via the XFS
+  mkdir path: `xfs_vn_mkdir` -> `xfs_create` -> `xfs_dir_create_child` ->
+  `xfs_bumplink`). The underlying cause of this inode state has not yet
+  been determined.
+- Natural next step: inspect how the crafted image's on-disk state leads
+  to a zero-link inode being used as the mkdir parent; the image contents
+  are embedded in the reproducer program set.
 - We can provide the kernel image, additional crash instances or raw
   artifacts on request.

@@ -1,0 +1,10 @@
+This file (repro.prog) is a syzkaller-extracted program that does NOT
+contain any XFS/mkdir calls. It is included only as original pipeline
+evidence of what the minimiser extracted for this crash title.
+
+The actual trigger is the mkdirat() call within the state-primed recipe
+replay (repro.kernsight.prog), which reaches:
+  xfs_vn_mkdir -> xfs_create -> xfs_dir_create_child -> xfs_bumplink -> inc_nlink
+
+Do not run this file alone to reproduce the warning — use
+repro.kernsight.prog with syz-execprog -procs=8 -threaded -repeat=0.
