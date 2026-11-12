@@ -67,7 +67,7 @@ is still generating and verifying one; it will be added once it passes.
 - `kernel.config` — kernel configuration used (also required to interpret addresses)
 - `environment.txt` — kernel image info (sha256), QEMU command line, syzkaller commit, reproducer command
 - `reproducer/repro.kernsight.prog` — pipeline-verified reproducer (83-program ordered set + triggering testcase)
-- `reproducer/repro.prog` — minimal triggering testcase (state-dependent; does not reproduce alone)
+- `reproducer/repro.prog` — original syzkaller-extracted program, retained for pipeline evidence; not a standalone reproducer of this warning
 - `reproducer/repro.priming.prog` — state-priming program set (pipeline repro recipe)
 - `logs/log-*.txt`, `logs/report-*.txt` — original syzkaller execution logs and crash reports from the fuzzing pipeline
 - `logs/machineInfo-*.txt`, `logs/title-stat.json` — guest environment info and title statistics
